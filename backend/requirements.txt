@@ -1,0 +1,23 @@
+# NEXUS LifeOS Backend — API + X-ray 3D reconstruction
+# Python 3.9+ recommended
+
+# Web API
+fastapi>=0.104.0
+uvicorn[standard]>=0.24.0
+pydantic>=2.0.0
+
+# Image & array
+numpy>=1.24.0
+scipy>=1.11.0
+Pillow>=10.0.0
+
+# ML / embeddings / optional MiDaS depth
+torch>=2.0.0
+sentence-transformers>=2.2.0
+scikit-learn>=1.3.0
+
+# 3D isosurface extraction (marching cubes) for smooth volumetric mesh
+scikit-image>=0.21.0
+
+# Optional: bilateral smoothing for depth (higher quality)
+opencv-python-headless>=4.8.0

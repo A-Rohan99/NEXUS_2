@@ -22,6 +22,9 @@ from scipy.signal import find_peaks
 from PIL import Image
 from io import BytesIO
 
+from xray_3d import reconstruct_3d
+from volumetric_3d import reconstruct_volumetric_3d
+
 # ========== CONFIGURATION ==========
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
@@ -715,6 +718,71 @@ async def get_medical_history(patient_id: str = Body(..., embed=True)):
     except Exception as e:
         logger.error(f"Failed to get medical history: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Failed to retrieve medical history: {str(e)}")
+
+# ========== X-RAY 3D RECONSTRUCTION ==========
+@app.post("/v1/nexus/xray/reconstruct-3d")
+async def xray_reconstruct_3d(
+    image: UploadFile = File(...),
+    use_ai: bool = Form(True),
+    grid_step: int = Form(4),
+):
+    """
+    Convert a single 2D X-ray into a virtual 3D representation.
+    Returns depth map (base64 PNG) and mesh data (vertices + faces) for true 3D rendering.
+    use_ai: if True, uses MiDaS depth model when available; otherwise heuristic only.
+    grid_step: mesh resolution (higher = fewer vertices, e.g. 4 = every 4th pixel).
+    """
+    logger.info(f"3D reconstruction request: use_ai={use_ai}, grid_step={grid_step}")
+    
+    try:
+        contents = await image.read()
+        if not contents:
+            logger.error("Empty image received")
+            raise HTTPException(status_code=400, detail="Empty image")
+        
+        logger.info(f"Image received: size={len(contents)} bytes")
+        result = reconstruct_3d(contents, use_ai=use_ai, grid_step=max(2, min(8, grid_step)))
+        
+        logger.info(f"3D reconstruction successful: vertices={len(result['mesh']['vertices'])//3}, used_ai={result['used_ai']}")
+        return result
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"X-ray 3D reconstruction failed: {str(e)}", exc_info=True)
+        raise HTTPException(status_code=500, detail=f"3D reconstruction failed: {str(e)}")
+
+
+# ========== VOLUMETRIC 3D BONE RECONSTRUCTION ==========
+@app.post("/v1/nexus/xray/reconstruct-volumetric-3d")
+async def xray_reconstruct_volumetric_3d(
+    image: UploadFile = File(...),
+):
+    """
+    Advanced volumetric 3D reconstruction from 2D X-ray.
+    Creates true 3D bone models with fracture detection and multi-dimensional representation.
+    Returns volumetric mesh with proper fracture visualization.
+    """
+    logger.info("Volumetric 3D reconstruction request")
+    
+    try:
+        contents = await image.read()
+        if not contents:
+            logger.error("Empty image received")
+            raise HTTPException(status_code=400, detail="Empty image")
+        
+        logger.info(f"Image received: size={len(contents)} bytes")
+        result = reconstruct_volumetric_3d(contents)
+        
+        logger.info(f"Volumetric 3D reconstruction successful: vertices={len(result['mesh']['vertices'])//3}, fractures={result['fracture_analysis']['count']}")
+        return result
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Volumetric 3D reconstruction failed: {str(e)}", exc_info=True)
+        raise HTTPException(status_code=500, detail=f"Volumetric 3D reconstruction failed: {str(e)}")
+
 
 # ========== HEALTH CHECK ==========
 @app.get("/health")

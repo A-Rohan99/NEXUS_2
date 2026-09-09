@@ -2,6 +2,17 @@ PS-1.2: Explainable Multi-Modal AI Framework for Medical Diagnosis Problem Descr
 
 # NEXUS LifeOS — Clinically Explainable Multi‑Modal AI
 
+## Quick start (backend + frontend)
+
+1. **Backend:** `cd backend` → `pip install -r requirements.txt` → `uvicorn main:app --reload --host 0.0.0.0 --port 8000`  
+   (Or on Windows: `run.bat`.)
+2. **Frontend:** `cd frontend` → `npm install` → `npm start`  
+3. Open **http://localhost:4200** and use the **3D X-ray Viewer** (upload an X-ray → switch to **True 3D** for the final result).
+
+See **[RUN.md](RUN.md)** for detailed steps and X-ray 3D workflow.
+
+---
+
 ## Overview
 - Clinically oriented AI platform integrating imaging, EHRs, lab reports, and wearables.
 - Emphasis on explainability, fairness, and deployment feasibility for low‑resource settings.

@@ -30,3 +30,12 @@ Thumbs.db
 *.swo
 *.tmp
 *.temp
+
+# Python / Backend
+backend/**/__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.db
+
+backend/nexus_vault/chats/
